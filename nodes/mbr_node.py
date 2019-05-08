@@ -15,7 +15,7 @@ class RadioLogger:
         
         while not rospy.is_shutdown():
             ws = self.radio.get_wireless_status()
-            print ws
+            #print ws
             for remote in ws['wireless_status'].keys():
                 if not remote in pubs:
                     pubs[remote] = {}
