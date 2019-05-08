@@ -36,3 +36,28 @@ while not rospy.is_shutdown():
         logger = RadioLogger(sns[0])
         logger.run()
         
+'''
+Example http post to start logging via UDP
+
+POST /logging.cgi HTTP/1.1
+Host: 10.19.9.206
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: http://10.19.9.206/logging.cgi
+Content-Type: multipart/form-data; boundary=---------------------------345410181533079795237063405
+Content-Length: 290
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+
+-----------------------------345410181533079795237063405
+Content-Disposition: form-data; name="udp_port"
+
+11111
+-----------------------------345410181533079795237063405
+Content-Disposition: form-data; name="action"
+
+start
+-----------------------------345410181533079795237063405--
+'''
