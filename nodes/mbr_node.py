@@ -14,17 +14,20 @@ class RadioLogger:
         pubs = {}
         
         while not rospy.is_shutdown():
-            ws = self.radio.get_wireless_status()
-            #print ws
-            for remote in ws['wireless_status'].keys():
-                if not remote in pubs:
-                    pubs[remote] = {}
-                remote_str = str(int(remote))
-                rstatus = ws['wireless_status'][remote]
-                for k in rstatus.keys():
-                    if not k in pubs[remote]:
-                        pubs[remote][k] = rospy.Publisher(self.topic+'/'+remote_str+'/'+k, Float32, queue_size=10)
-                    pubs[remote][k].publish(rstatus[k])
+            try:
+                ws = self.radio.get_wireless_status()
+                #print ws
+                for remote in ws['wireless_status'].keys():
+                    if not remote in pubs:
+                        pubs[remote] = {}
+                    remote_str = str(int(remote))
+                    rstatus = ws['wireless_status'][remote]
+                    for k in rstatus.keys():
+                        if not k in pubs[remote]:
+                            pubs[remote][k] = rospy.Publisher(self.topic+'/'+remote_str+'/'+k, Float32, queue_size=10)
+                        pubs[remote][k].publish(rstatus[k])
+            except socket.timeout:
+                pass
             rospy.sleep(0.1)
             
         
