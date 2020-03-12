@@ -28,7 +28,7 @@ class RadioLogger:
                         pubs[remote][k].publish(rstatus[k])
             except socket.timeout:
                 pass
-            rospy.sleep(0.1)
+            rospy.sleep(0.2)
             
         
 while not rospy.is_shutdown():
