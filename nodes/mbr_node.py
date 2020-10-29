@@ -34,7 +34,7 @@ class RadioLogger:
 while not rospy.is_shutdown():
     rospy.init_node('mbr')
     sns = mbr.radio_api_lib.discover()
-    print sns
+    #print sns
     if len(sns) > 0:
         logger = RadioLogger(sns[0])
         logger.run()
