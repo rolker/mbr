@@ -2,6 +2,7 @@
 
 import mbr
 import rospy
+import socket
 from std_msgs.msg import Float32
 
 class RadioLogger:
