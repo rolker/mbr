@@ -9,7 +9,7 @@ class RadioLogger:
     def __init__(self, sn):
         self.sn = sn
         self.radio = mbr.radio_api_lib.radio(sn)
-        self.topic = '/mbr/'+str(sn)
+        self.topic = 'mbr/'+str(sn)
 
     def run(self):
         pubs = {}

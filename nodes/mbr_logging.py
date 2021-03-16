@@ -49,5 +49,5 @@ while not rospy.is_shutdown():
     for i in range(len(fields)):
         if i in (21,22):
             if not sn+'/'+fields[i] in pubs:
-                pubs[sn+'/'+fields[i]] = rospy.Publisher('/mbr/'+sn+'/'+fields[i],Float32, queue_size=10)
+                pubs[sn+'/'+fields[i]] = rospy.Publisher('mbr/'+sn+'/'+fields[i],Float32, queue_size=10)
             pubs[sn+'/'+fields[i]].publish(float(values[i]))
