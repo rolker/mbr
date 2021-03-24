@@ -10,35 +10,48 @@ class RadioLogger:
         self.sn = sn
         self.radio = mbr.radio_api_lib.radio.radio(sn)
         self.topic = 'mbr/'+str(sn)
+        self.pubs = {}
 
-    def run(self):
-        pubs = {}
-        
-        while not rospy.is_shutdown():
-            try:
-                ws = self.radio.get_wireless_station_list()
-                #print ws
-                for remote in ws['wireless_status'].keys():
-                    if not remote in pubs:
-                        pubs[remote] = {}
-                    remote_str = str(int(remote))
-                    rstatus = ws['wireless_status'][remote]
-                    for k in rstatus.keys():
-                        if not k in pubs[remote]:
-                            pubs[remote][k] = rospy.Publisher(self.topic+'/'+remote_str+'/'+k, Float32, queue_size=10)
-                        pubs[remote][k].publish(rstatus[k])
-            except socket.timeout:
-                pass
-            rospy.sleep(0.2)
+    def runOnce(self):
+        try:
+            ws = self.radio.get_wireless_station_list()
+            #print ws
+            for remote in ws['wireless_status'].keys():
+                if not remote in self.pubs:
+                    self.pubs[remote] = {}
+                remote_str = str(int(remote))
+                rstatus = ws['wireless_status'][remote]
+                for k in rstatus.keys():
+                    if not k in self.pubs[remote]:
+                        self.pubs[remote][k] = rospy.Publisher(self.topic+'/'+remote_str+'/'+k, Float32, queue_size=10)
+                    self.pubs[remote][k].publish(rstatus[k])
+        except socket.timeout: 
+            pass
+        except mbr.radio_api_lib.utilities.RadioException:
+            pass
             
         
 while not rospy.is_shutdown():
     rospy.init_node('mbr')
-    sns = mbr.radio_api_lib.utilities.discover()
-    #print sns
-    if len(sns) > 0:
-        logger = RadioLogger(sns[0])
-        logger.run()
+    sns = None
+    try:
+        sns = rospy.get_param('~radioSerialNumbers')
+        #print(sns)
+    except KeyError:
+        print("No radio specified in radioSerialNumbers parameter, discovering...")
+    if sns is None:      
+        sns = mbr.radio_api_lib.utilities.discover()
+    print(sns)
+    loggers = []
+    for sn in sns:
+        loggers.append(RadioLogger(sn))
+
+    if(len(loggers)):
+      while not rospy.is_shutdown():
+        for l in loggers:
+            l.runOnce()
+        rospy.sleep(0.2)
+
         
 '''
 Example http post to start logging via UDP
