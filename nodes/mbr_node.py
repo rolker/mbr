@@ -8,7 +8,7 @@ from std_msgs.msg import Float32
 class RadioLogger:
     def __init__(self, sn):
         self.sn = sn
-        self.radio = mbr.radio_api_lib.radio(sn)
+        self.radio = mbr.radio_api_lib.radio.radio(sn)
         self.topic = 'mbr/'+str(sn)
 
     def run(self):
@@ -16,7 +16,7 @@ class RadioLogger:
         
         while not rospy.is_shutdown():
             try:
-                ws = self.radio.get_wireless_status()
+                ws = self.radio.get_wireless_station_list()
                 #print ws
                 for remote in ws['wireless_status'].keys():
                     if not remote in pubs:
@@ -34,7 +34,7 @@ class RadioLogger:
         
 while not rospy.is_shutdown():
     rospy.init_node('mbr')
-    sns = mbr.radio_api_lib.discover()
+    sns = mbr.radio_api_lib.utilities.discover()
     #print sns
     if len(sns) > 0:
         logger = RadioLogger(sns[0])
