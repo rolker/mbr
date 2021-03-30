@@ -27,8 +27,8 @@ fields_string = '''
     Number_TX_frames_dropped_due_to_no_link,
     Number_TX_frames_dropped_due_to_MAC_busy,
     Number_TX_frames_with_missed_ACK,
-    Total_TX_bandwidth_to_mac_kb_per_s,
-    Total_RX_bandwidth_from_mac_kb_per_s,
+    TX_bw_kb_per_s,
+    RX_bw_kb_per_s,
     Sites_count
 '''
 
@@ -44,7 +44,7 @@ pubs = {}
 
 while not rospy.is_shutdown():
     data = insock.recv(1024)
-    values = data.split(',')
+    values = data.decode('utf8').split(',')
     sn = values[0]
     for i in range(len(fields)):
         if i in (21,22):
