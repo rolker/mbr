@@ -5,8 +5,11 @@ from std_msgs.msg import Float32
 from diagnostic_msgs.msg import DiagnosticArray
 from diagnostic_msgs.msg import DiagnosticStatus
 from diagnostic_msgs.msg import KeyValue
-
 import socket
+import paramiko
+import time
+
+MBR_IP_ADDRESS="10.19.9.206"
 
 fields_string = '''
     Unit_serial_number,
@@ -35,6 +38,53 @@ fields_string = '''
     Sites_count
 '''
 
+# Start the MBR data broadcast
+client = paramiko.client.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+rospy.loginfo("Starting MBR data broadcast...")
+print("Starting MBR data broadcast...")
+DATA_STARTED = False
+while not DATA_STARTED:
+    try:
+        client.connect(MBR_IP_ADDRESS, 
+        username="root", 
+        password="1stx_Admin")
+        transport = client.get_transport()
+        channel = transport.open_session()
+    except Exception as e:
+        rospy.loginfo("Failed to login to MBR to start data streaming.")
+        print("Failed to login to MBR to start data streaming.")
+        print(str(e))
+        time.sleep(20)
+        break
+    
+    try:
+        _stdin, _stdout, _stderr = client.exec_command("ps | grep analog")
+        response = _stdout.read().decode()
+    except Exception as e:
+        rospy.loginfo("Failed to execute MBR process query.")
+        print("Failed to execute MBR process query.")
+        print(str(e))
+        time.sleep(20)
+        break
+
+    #print(response)
+    if response.find("analog -s 32768 -u 1111") != -1:
+        DATA_STARTED = True
+    else:
+        try:
+            channel.exec_command("analog -s 32768 -u 11111 >/dev/null 2>&1 &")
+        except:
+            rospy.loginfo("Failed to start data distribution")
+            print("Failed to start data distribution")
+            rospy.loginfo(_stderr.read().decode())
+            time.sleep(20)
+
+    client.close()
+
+rospy.loginfo("MBR data broadcast started.")
+print("MBR data broadcast started.")
 fields = []
 for f in fields_string.split(','):
     fields.append(f.strip())
