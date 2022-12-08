@@ -11,6 +11,8 @@ import time
 
 MBR_IP_ADDRESS="10.19.9.206"
 
+# MBR logs contain these 24 fixed fields followed by sets of 21 additional
+# fields for each "site" or connected radio.  
 fields_string = '''
     Unit_serial_number,
     Unix_time_in_seconds,
@@ -37,6 +39,30 @@ fields_string = '''
     RX_bw_kbs,
     Sites_count
 '''
+
+site_fields = [
+    "siteID",
+    "Tx_bw_kbps",
+    "Rx_bw_kbps",
+    "SN",
+    "Seconds_Since_Rx_Frame",
+    "Missing_Rx_Seq_Num",
+    "Mean_Rx_Margin_LastSecond",
+    "Max_Rx_Margin_LastSecond",
+    "Min_Rx_Margin_LastSecond",
+    "Modulation",
+    "Rx_Beam_Direction_xaxis",
+    "Rx_Beam_Direction_yaxis",
+    "Time_Since_Last_Distance",
+    "Distance_m",
+    "Time_Since_Last_Ranging",
+    "Ranging_Level",
+    "Time_Quality",
+    "Time_Offset",
+    "Antenna_Element_Gain",
+    "Tx_Pwr",
+    "Non_LOS_Loss"
+]
 
 # Start the MBR data broadcast
 client = paramiko.client.SSHClient()
@@ -100,29 +126,40 @@ while not rospy.is_shutdown():
     data = insock.recv(1024)
     values = data.decode('utf8').split(',')
     sn = values[0]
+    # If we are connected to another radio, there will be sets of "site" data
+    # after the first 24 fixed values. 
     if len(values) >= 24:
         diag_array = DiagnosticArray()
         diag_array.header.stamp = rospy.Time.now()
+        # Save the fixed fields in a diagnostics status message:
         ds = DiagnosticStatus()
         ds.name = 'mbr'
         ds.hardware_id = values[0]
         for i in range(len(fields)):
             ds.values.append(KeyValue(fields[i],values[i]))
 
-        for i in (21,22):
+        # Extract the total Tx kbps and Rx kbps fields for this local radio.
+        # Presumably these values include the BW for all connecte sites. 
+        for i in range(len(fields)):
             if not sn+'/'+fields[i] in pubs:
                 pubs[sn+'/'+fields[i]] = rospy.Publisher('mbr/'+sn+'/'+fields[i],Float32, queue_size=10)
             pubs[sn+'/'+fields[i]].publish(float(values[i]))
         site_count = int(values[23])
 
+        # Then for each site publish its data 
         for i in range(site_count):
             base_index = 24+i*21
             if len(values) >= base_index+21:
-                topic = 'mbr/'+sn+'/'+values[base_index+0]+'/mean_margin'
-                if not topic in pubs:
-                    pubs[topic] = rospy.Publisher(topic, Float32, queue_size=10)
-                pubs[topic].publish(float(values[base_index+6]))
+                for j in range(len(site_fields)):
+                    topic = 'mbr/'+sn+'/'+values[base_index+0]+'/' + site_fields[j]
+                    
+                    # Create a publisher if we don't have one already.
+                    if not topic in pubs:
+                        pass
+                        pubs[topic] = rospy.Publisher(topic, Float32, queue_size=10)
+                    # Publish the field.
+                    pubs[topic].publish(float(values[base_index + j]))
 
-            ds.values.append(KeyValue(values[base_index+0]+'_mean_margin',values[base_index+6]))
-        diag_array.status.append(ds)
+                    ds.values.append(KeyValue(values[base_index+j]+'_'+site_fields[j],values[base_index + j]))
+            diag_array.status.append(ds)
         diagnostic_pub.publish(diag_array)
