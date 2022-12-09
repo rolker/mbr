@@ -9,7 +9,9 @@ import socket
 import paramiko
 import time
 
-MBR_IP_ADDRESS="10.19.9.206"
+# MBR IP Addresss are provided in the launch file.
+MBR_IP_ADDRESS = rospy.get_param("~ipaddress",'10.19.9.206')
+MBRpassword = rospy.get_param("MBRpassword")
 
 # MBR logs contain these 24 fixed fields followed by sets of 21 additional
 # fields for each "site" or connected radio.  
@@ -75,7 +77,7 @@ while not DATA_STARTED:
     try:
         client.connect(MBR_IP_ADDRESS, 
         username="root", 
-        password="1stx_Admin")
+        password=MBRpassword)
         transport = client.get_transport()
         channel = transport.open_session()
     except Exception as e:
