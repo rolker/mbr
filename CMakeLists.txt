@@ -10,7 +10,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES radar_obstacle_detection
-#  CATKIN_DEPENDS marine_msgs rospy
+#  CATKIN_DEPENDS project11_msgs rospy
 #  DEPENDS system_lib
 )
 
