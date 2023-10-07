@@ -9,9 +9,13 @@ import socket
 import paramiko
 import time
 
+rospy.init_node('mbr_logging')
+
 # MBR IP Addresss are provided in the launch file.
 MBR_IP_ADDRESS = rospy.get_param("~ipaddress",'10.19.9.206')
 MBRpassword = rospy.get_param("MBRpassword")
+rospy.loginfo("MBR address" + MBR_IP_ADDRESS)
+print ("MBR address", MBR_IP_ADDRESS)
 
 # MBR logs contain these 24 fixed fields followed by sets of 21 additional
 # fields for each "site" or connected radio.  
@@ -120,7 +124,6 @@ for f in fields_string.split(','):
 insock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 insock.bind(('',11111))
 
-rospy.init_node('mbr_logging')
 pubs = {}
 diagnostic_pub = rospy.Publisher('/diagnostics',DiagnosticArray,queue_size=10)
 
